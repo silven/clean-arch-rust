@@ -1,0 +1,10 @@
+[package]
+name = "clean-rs"
+version = "0.1.0"
+authors = ["Mikael Silvén <mikael@silven.nu>"]
+edition = "2018"
+
+[dependencies]
+rusqlite = "0.15"
+uuid = { version = "0.7", features = ["v4"] }
+interactor = "*"
