@@ -33,7 +33,7 @@ impl Task {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct User {
     pub name: String,
     tasks: Vec<Task>,
@@ -54,5 +54,14 @@ impl User {
     pub fn tasks(&self) -> &[Task] {
         &self.tasks
     }
+}
+
+#[derive(Debug)]
+pub enum UserSearchTerms {
+    Name(String),
+}
+
+impl super::Searchable for User {
+    type Credentials = UserSearchTerms;
 }
 

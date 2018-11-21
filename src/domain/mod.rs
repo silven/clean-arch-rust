@@ -1,16 +1,23 @@
 pub mod entities;
 
 
+pub trait Searchable {
+    type Credentials;
+}
+
 pub trait Repository<T> {
     // Since different databases use different Ids, 
     // I think I should be able to parameterize over it.
     type Id;
 
     fn all(&self) -> Vec<T>;
-    fn find(&self, id: &Self::Id) -> Option<T>;
+    fn get(&self, id: &Self::Id) -> Option<T>;
     fn save(&mut self, data: &T) -> Self::Id;
 }
 
+pub trait SearchableRepository<T: Searchable> : Repository<T> {
+    fn find(&self, id: &[T::Credentials]) -> Vec<T>;
+}
 
 // The structure is very ad-hoc
 pub mod usecases {
@@ -23,8 +30,8 @@ pub mod usecases {
     // Unsure if this belongs one this level or not
     use super::Repository;
     pub fn find_all_done_via_id<R: Repository<User>>(repo: &R, id: &R::Id) -> Vec<Task> {
-        let user = repo.find(&id).expect("No such user!");
-        return find_all_done(&user);
+        let user = repo.get(&id).expect("No such user!");
+        find_all_done(&user)
     }
 
     #[cfg(test)] 
