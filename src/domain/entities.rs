@@ -3,9 +3,9 @@ use std::time::Instant;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Task {
     pub desc: String,
-    tags: Vec<String>,
-    due:  Option<Instant>,
-    done: bool,
+    pub tags: Vec<String>,
+    pub due:  Option<Instant>,
+    pub done: bool,
 }
 
 

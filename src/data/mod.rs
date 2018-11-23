@@ -35,7 +35,7 @@ impl SQLable for User {
     }
 
     fn bind<F, T>(data: &Self, consumer: F) -> T where F: FnOnce(&[&ToSql]) -> T {
-        let bindings = [&data.name as &ToSql];
+        let bindings: [&ToSql; 1] = [&data.name];
         consumer(&bindings)
     }
 
@@ -79,22 +79,33 @@ impl SQLSearchable for User {
 impl SQLable for Task {
     fn select_one() -> &'static str { "SELECT * from tasks WHERE id = (?) LIMIT 1" }
     fn select_all() -> &'static str { "SELECT * from tasks" }
-    fn insert_one() -> &'static str { "INSERT INTO tasks (desc) VALUES (?)" }
+    fn insert_one() -> &'static str { "INSERT INTO tasks (desc, done, tags) VALUES (?, ?, ?)" }
     fn create_table() -> &'static str { 
         "CREATE TABLE tasks (
             id         INTEGER PRIMARY KEY,
-            desc       TEXT NOT NULL
+            desc       TEXT NOT NULL,
+            done       BOOL NOT NULL,
+            tags       TEXT
         )"
     }
 
     fn bind<F, T>(data: &Self, consumer: F) -> T where F: FnOnce(&[&ToSql]) -> T {
-        let bindings = [&data.desc as &ToSql];
+        let bindings: [&ToSql; 3] = [&data.desc, &data.done, &data.tags.join(",")];
         consumer(&bindings)
     }
     
     fn from_row<'row, 'stmt>(row: &rusqlite::Row<'row, 'stmt>) -> Self {
-        let desc: String = row.get(1);
-        Task::new(desc)
+        let desc: String = row.get("desc");
+        let done: bool = row.get("done");
+        let tags: Option<String> = row.get("tags");
+
+        let tag_vec = tags.map_or(vec![], |s| s.split(",").map(Into::into).collect());
+        Task {
+            desc: desc,
+            done: done,
+            tags: tag_vec,
+            due: None, // No support here yet, lawl
+        }
     }
 }
 
@@ -146,8 +157,8 @@ impl Rusqlite {
         T::bind(data, |bindings| stmnt.insert(bindings)).expect("Could not insert")
     }
 
-    fn find<T: SQLSearchable>(&self, creds: &[<T as Searchable>::Credentials]) -> Vec<T> {
-        let (sql, params) = T::build_query(creds, None);
+    fn find<T: SQLSearchable>(&self, creds: &[<T as Searchable>::Credentials], limit: Option<u32>) -> Vec<T> {
+        let (sql, params) = T::build_query(creds, limit);
 
         let mut stmnt = self.conn
             .prepare(&sql)
@@ -182,8 +193,8 @@ impl<T: SQLable> Repository<T> for Rusqlite {
 
 use crate::domain::{Searchable, SearchableRepository};
 impl<T: SQLSearchable> SearchableRepository<T> for Rusqlite {
-    fn find(&self, credentials: &[<T as Searchable>::Credentials]) -> Vec<T> {
-        self.find(credentials)
+    fn find(&self, credentials: &[<T as Searchable>::Credentials], limit: Option<u32>) -> Vec<T> {
+        self.find(credentials, limit)
     }
 }
 
@@ -314,7 +325,7 @@ mod test {
 
         let query_result = repo.find::<User>(&[
             UserSearchTerms::Name("C".to_string()),
-        ]);
+        ], Some(1));
         assert_eq!(query_result, vec![c]);
 
 

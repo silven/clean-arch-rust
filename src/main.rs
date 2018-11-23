@@ -24,10 +24,11 @@ fn main() {
 
     let person: User = repo.get(&id).expect("No such person");
 
-    let buy_milk = Task::new("Buy Milk").due(Instant::now() + Duration::from_secs(60*24));
+    let mut buy_milk = Task::new("Buy Milk").due(Instant::now() + Duration::from_secs(60*24));
+    buy_milk.tags = vec!["urgent".into()];
     let task_id = repo.save(&buy_milk);
 
     let the_task: Task = repo.get(&task_id).expect("No such task");
 
-    println!("{} should {}", person.name, the_task.desc);
+    println!("{} should {}{:?}", person.name, the_task.desc, the_task.tags);
 }

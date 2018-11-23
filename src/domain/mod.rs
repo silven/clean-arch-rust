@@ -16,7 +16,7 @@ pub trait Repository<T> {
 }
 
 pub trait SearchableRepository<T: Searchable> : Repository<T> {
-    fn find(&self, id: &[T::Credentials]) -> Vec<T>;
+    fn find(&self, id: &[T::Credentials], limit: Option<u32>) -> Vec<T>;
 }
 
 // The structure is very ad-hoc
