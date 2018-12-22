@@ -8,7 +8,6 @@ pub struct Task {
     pub done: bool,
 }
 
-
 impl Task {
     pub fn new<T: Into<String>>(description: T) -> Self {
         Task {
@@ -41,9 +40,13 @@ pub struct User {
 
 impl User {
     pub fn new<T: Into<String>>(name: T) -> Self {
+        Self::with_tasks(name, vec![])
+    }
+
+    pub fn with_tasks<T: Into<String>>(name: T, tasks: Vec<Task>) -> Self {
         User {
             name: name.into(),
-            tasks: Vec::new(),
+            tasks: tasks,
         }
     }
 
@@ -64,4 +67,3 @@ pub enum UserSearchTerms {
 impl super::Searchable for User {
     type Credentials = UserSearchTerms;
 }
-

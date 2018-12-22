@@ -1,4 +1,4 @@
-#![feature(uniform_paths)]
+#![feature(uniform_paths, nll)]
 
 use std::time::{Duration, Instant};
 
@@ -14,10 +14,10 @@ fn main() {
     let mut user_repo = data::TrivialRepository::new();
     let mut task_repo = data::HashRepository::new();
     */
-    
+
     let mut repo = data::Rusqlite::in_memory();
     repo.setup::<User>().expect("Could not setup tables");
-    repo.setup::<Task>().expect("Could not setup tables");;
+    repo.setup::<Task>().expect("Could not setup tables");
 
     let mike = User::new("Mike");
     let id = repo.save(&mike);
